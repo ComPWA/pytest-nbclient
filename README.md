@@ -11,6 +11,8 @@ pytest --nbclient docs
 
 Each notebook becomes one test item that passes when all of its cells execute without an error. Notebooks run from their own directory with the kernel named in their metadata, and there is no timeout unless you set `--nbclient-timeout`. Output is not compared against the stored output.
 
+The kernel communicates over IPC sockets wherever the platform supports them, which avoids the warning that recent `ipykernel` versions emit about unencrypted TCP connections. Pass `--nbclient-transport=tcp` to use TCP instead.
+
 Collection is opt-in through `--nbclient`, so a plain `pytest` run only collects your usual tests. Select or skip notebooks with standard pytest configuration, such as `testpaths`, `norecursedirs` (for instance `_build` and `.ipynb_checkpoints`), `--ignore`, and `-k`.
 
 ## Development
