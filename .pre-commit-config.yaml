@@ -1,0 +1,41 @@
+repos:
+  - repo: https://github.com/ComPWA/policy
+    rev: 0.10.2
+    hooks:
+      - id: check-dev-files
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.2
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v1.9.6
+    hooks:
+      - id: tombi-format
+      - id: tombi-lint
+        args: [--error-on-warnings]
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.11.1
+    hooks:
+      - id: editorconfig-checker
+        name: editorconfig
+        alias: ec
+        exclude: >-
+          (?x)^(
+            .*\.py
+          )$
+
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.92
+    hooks:
+      - id: ty
+        args: [--group=style, --no-default-groups]
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.5
+    hooks:
+      - id: uv-lock
