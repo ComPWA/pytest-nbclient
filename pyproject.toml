@@ -19,6 +19,8 @@ dependencies = [
     "nbclient",
     "nbformat",
     "pytest",
+    "pyzmq",
+    "traitlets",
 ]
 
 [project.entry-points.pytest11]

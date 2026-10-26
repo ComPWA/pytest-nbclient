@@ -663,6 +663,8 @@ dependencies = [
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "pytest" },
+    { name = "pyzmq" },
+    { name = "traitlets" },
 ]
 
 [package.dev-dependencies]
@@ -684,6 +686,8 @@ requires-dist = [
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "pytest" },
+    { name = "pyzmq" },
+    { name = "traitlets" },
 ]
 
 [package.metadata.requires-dev]

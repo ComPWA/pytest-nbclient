@@ -4,20 +4,26 @@ Collection is opt-in with :code:`--nbclient`, so that a plain :code:`pytest` run
 repository with notebooks only runs its unit tests. Which notebooks are collected is
 controlled with the usual pytest options, such as :code:`testpaths`,
 :code:`norecursedirs`, and :code:`--ignore`.
+
+Kernels communicate over IPC sockets where the platform supports them, which avoids the
+warning that :code:`ipykernel` emits about unencrypted TCP connections.
 """
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import nbformat
 import pytest
+import zmq
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError
+from traitlets.config import Config
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from pathlib import Path
 
     from _pytest._code.code import TerminalRepr, TracebackStyle
 
@@ -40,6 +46,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=None,
         help="Kernel name to use instead of the one in the notebook metadata.",
     )
+    group.addoption(
+        "--nbclient-transport",
+        choices=("ipc", "tcp"),
+        default="ipc" if zmq.has("ipc") else "tcp",
+        help="Transport for kernel communication; IPC by default where supported.",
+    )
 
 
 def pytest_collect_file(
@@ -61,13 +73,21 @@ class NotebookItem(pytest.Item):
         kwargs = {}
         if kernel_name := self.config.getoption("nbclient_kernel"):
             kwargs["kernel_name"] = kernel_name
-        client = NotebookClient(
-            notebook,
-            timeout=self.config.getoption("nbclient_timeout"),
-            resources={"metadata": {"path": str(self.path.parent)}},
-            **kwargs,
-        )
-        client.execute()
+        transport = self.config.getoption("nbclient_transport")
+        with tempfile.TemporaryDirectory() as socket_dir:
+            config = Config()
+            config.KernelManager.transport = transport
+            if transport == "ipc":
+                # The kernel runs in the notebook directory, so socket paths must be absolute
+                config.KernelManager.ip = str(Path(socket_dir) / "kernel")
+            client = NotebookClient(
+                notebook,
+                config=config,
+                timeout=self.config.getoption("nbclient_timeout"),
+                resources={"metadata": {"path": str(self.path.parent)}},
+                **kwargs,
+            )
+            client.execute()
 
     def repr_failure(
         self,
